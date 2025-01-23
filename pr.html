@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algorithm Selection</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #282828, #1a1a1a);
+            color: #fff;
+        }
+
+        header {
+            background-color: #ff7300;
+            padding: 15px 30px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .container {
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .container h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .options {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .option {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            width: 250px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s, background-color 0.3s;
+            cursor: pointer;
+        }
+
+        .option:hover {
+            transform: translateY(-10px);
+            background-color: #444;
+        }
+
+        .option .icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+
+        .option h2 {
+            font-size: 1.5em;
+            margin: 10px 0;
+        }
+
+        .footer {
+            text-align: center;
+            background-color: #222;
+            padding: 10px;
+            margin-top: 50px;
+            color: #ccc;
+            font-size: 0.9em;
+        }
+
+        .statistics {
+            background-color: #1a1a1a;
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 50px;
+            box-shadow: 0px -4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .statistics .stat {
+            display: inline-block;
+            margin: 0 30px;
+            color: #ff7300;
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .statistics .stat p {
+            color: #fff;
+            font-size: 1em;
+            margin: 5px 0 0;
+        }
+
+        .credits {
+            background-color: #333;
+            text-align: center;
+            padding: 10px;
+            font-size: 1em;
+            margin-top: 10px;
+        }
+    </style>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <header>
+        Algorithm Selection System
+    </header>
+    <div class="container">
+        <h1>Welcome to the Algorithm Management System</h1>
+        <p>Select an option to explore various algorithms:</p>
+        <div class="options">
+            <div class="option" onclick="location.href='page_replacement.html'">
+                <div class="icon">
+                    <i class="fas fa-memory"></i>
+                </div>
+                <h2>Page Replacement Algorithms</h2>
+                <p>Explore techniques like FIFO, LRU, and Optimal Replacement.</p>
+            </div>
+            <div class="option" onclick="location.href='cpu_scheduling.html'">
+                <div class="icon">
+                    <i class="fas fa-microchip"></i>
+                </div>
+                <h2>CPU Scheduling Algorithms</h2>
+                <p>Learn about algorithms like FCFS, SJF, and Round Robin.</p>
+            </div>            
+        </div>
+    </div>
+    <div class="statistics">
+        <div class="stat">
+            500+<p>Projects Managed</p>
+        </div>
+        <div class="stat">
+            1200+<p>Workers Monitored</p>
+        </div>
+        <div class="stat">
+            99.9%<p>System Uptime</p>
+        </div>
+    </div>
+    <div class="credits">
+        Designed by Yash Gaur and Dwij Chandani
+    </div>
+    <div class="footer">
+        &copy; 2025 Algorithm Management System. All rights reserved.
+    </div>
+</body>
+</html>
