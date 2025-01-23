@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Replacement Algorithms</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        header {
+            background-color: #ff7300;
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .button-group {
+            margin: 20px 0;
+        }
+        button {
+            background-color: #333;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #444;
+        }
+        input {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        #result {
+            margin-top: 20px;
+            background-color: #282828;
+            padding: 15px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        Page Replacement Algorithms
+    </header>
+    <div class="container">
+        <h1>Select an Algorithm</h1>
+        <div class="button-group">
+            <button onclick="selectAlgorithm('fifo')">First In First Out (FIFO)</button>
+            <button onclick="selectAlgorithm('optimal')">Optimal Replacement</button>
+            <button onclick="selectAlgorithm('lru')">Least Recently Used (LRU)</button>
+        </div>
+        <input type="text" id="pages" placeholder="Enter Page Reference String (comma-separated)">
+        <input type="number" id="frames" placeholder="Enter Number of Frames">
+        <button onclick="calculate()">Calculate</button>
+        <div id="result">
+            <h2>Result:</h2>
+            <pre id="output">Select an algorithm and input values to see results.</pre>
+        </div>
+    </div>
+    <script>
+        let selectedAlgorithm = '';
+
+        function selectAlgorithm(algorithm) {
+            selectedAlgorithm = algorithm;
+            document.getElementById('output').textContent = `Selected Algorithm: ${algorithm.toUpperCase()}`;
+        }
+
+        function calculate() {
+            const pages = document.getElementById('pages').value.split(',').map(Number);
+            const frames = parseInt(document.getElementById('frames').value);
+            if (!selectedAlgorithm || pages.length === 0 || isNaN(frames) || frames <= 0) {
+                alert('Please select an algorithm and provide valid input!');
+                return;
+            }
+
+            let result;
+            switch (selectedAlgorithm) {
+                case 'fifo':
+                    result = fifoPageReplacement(pages, frames);
+                    break;
+                case 'optimal':
+                    result = optimalPageReplacement(pages, frames);
+                    break;
+                case 'lru':
+                    result = lruPageReplacement(pages, frames);
+                    break;
+                default:
+                    alert('Invalid Algorithm Selection');
+                    return;
+            }
+
+            displayResults(result.pageFaults, result.ganttChart);
+        }
+
+        function fifoPageReplacement(pages, frames) {
+            let pageFaults = 0;
+            let frame = [];
+            let ganttChart = [];
+
+            for (let page of pages) {
+                if (!frame.includes(page)) {
+                    pageFaults++;
+                    if (frame.length < frames) {
+                        frame.push(page);
+                    } else {
+                        frame.shift();
+                        frame.push(page);
+                    }
+                }
+                ganttChart.push([...frame]);
+            }
+            return { pageFaults, ganttChart };
+        }
+
+        function optimalPageReplacement(pages, frames) {
+            let pageFaults = 0;
+            let frame = [];
+            let ganttChart = [];
+
+            for (let i = 0; i < pages.length; i++) {
+                let page = pages[i];
+
+                if (!frame.includes(page)) {
+                    pageFaults++;
+                    if (frame.length < frames) {
+                        frame.push(page);
+                    } else {
+                        let farthest = -1;
+                        let replaceIndex = -1;
+                        for (let j = 0; j < frame.length; j++) {
+                            let nextUse = pages.slice(i + 1).indexOf(frame[j]);
+                            if (nextUse === -1) {
+                                replaceIndex = j;
+                                break;
+                            } else if (nextUse > farthest) {
+                                farthest = nextUse;
+                                replaceIndex = j;
+                            }
+                        }
+                        frame[replaceIndex] = page;
+                    }
+                }
+                ganttChart.push([...frame]);
+            }
+            return { pageFaults, ganttChart };
+        }
+
+        function lruPageReplacement(pages, frames) {
+            let pageFaults = 0;
+            let frame = [];
+            let recentUsage = [];
+            let ganttChart = [];
+
+            for (let page of pages) {
+                if (!frame.includes(page)) {
+                    pageFaults++;
+                    if (frame.length < frames) {
+                        frame.push(page);
+                        recentUsage.push(page);
+                    } else {
+                        let lruPage = recentUsage.shift();
+                        let index = frame.indexOf(lruPage);
+                        frame[index] = page;
+                        recentUsage.push(page);
+                    }
+                } else {
+                    recentUsage.splice(recentUsage.indexOf(page), 1);
+                    recentUsage.push(page);
+                }
+                ganttChart.push([...frame]);
+            }
+            return { pageFaults, ganttChart };
+        }
+
+        function displayResults(pageFaults, ganttChart) {
+            let resultText = `Page Faults: ${pageFaults}\nGantt Chart:\n`;
+            ganttChart.forEach((step, index) => {
+                resultText += `Step ${index + 1}: ${step.join(' ')}\n`;
+            });
+
+            document.getElementById('output').textContent = resultText;
+        }
+    </script>
+</body>
+</html>

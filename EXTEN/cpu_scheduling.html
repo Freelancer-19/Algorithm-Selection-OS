@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPU Scheduling Algorithms</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .header {
+            background-color: #ff7300;
+            padding: 10px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .container {
+            margin: 20px auto;
+            width: 80%;
+        }
+        button {
+            background-color: gray;
+            color: white;
+            padding: 10px;
+            margin: 5px;
+            border: none;
+            cursor: pointer;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            width: 100px;
+        }
+        .result {
+            background-color: #222;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid white;
+            padding: 10px;
+            text-align: center;
+        }
+        .gantt {
+            margin-top: 20px;
+            overflow-x: auto;
+            white-space: nowrap;
+            background-color: #333;
+            padding: 10px;
+        }
+        .gantt div {
+            display: inline-block;
+            margin: 0 2px;
+            padding: 5px;
+            color: white;
+            text-align: center;
+            border: 1px solid #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">CPU Scheduling Algorithms</div>
+
+    <div class="container">
+        <h2>Enter Number of Processes</h2>
+        <input type="number" id="numProcesses" placeholder="Number of Processes">
+        <button onclick="generateInputs()">Next</button>
+
+        <h2>Select an Algorithm</h2>
+        <button onclick="setAlgorithm('FCFS')">First Come First Serve (FCFS)</button>
+        <button onclick="setAlgorithm('SJF')">Shortest Job First (SJF)</button>
+        <button onclick="setAlgorithm('RR')">Round Robin (RR)</button>
+        <button onclick="setAlgorithm('Priority')">Priority Scheduling</button>
+        <button onclick="setAlgorithm('SRTF')">Shortest Remaining Time First (SRTF)</button>
+
+        <br><br>
+        <div id="inputSection"></div>
+        <input type="text" id="timeQuantum" placeholder="Time Quantum (for RR)">
+        <button onclick="calculate()">Calculate</button>
+
+        <div class="result" id="output">
+            <h3>Result:</h3>
+            <p>Select an algorithm and input values to see results.</p>
+        </div>
+
+        <div class="gantt" id="ganttChart">
+            <h3>Gantt Chart:</h3>
+        </div>
+    </div>
+
+    <script>
+        let selectedAlgorithm = "FCFS";
+
+        function setAlgorithm(algo) {
+            selectedAlgorithm = algo;
+            generateInputs();
+        }
+
+        function generateInputs() {
+            let numProcesses = document.getElementById("numProcesses").value;
+            if (numProcesses <= 0) {
+                alert("Enter a valid number of processes!");
+                return;
+            }
+
+            let inputSection = document.getElementById("inputSection");
+            inputSection.innerHTML = "<h3>Enter Process Details</h3>";
+
+            let tableHtml = "<table><tr><th>Process</th>";
+            tableHtml += "<th>Arrival Time</th><th>Burst Time</th>";
+
+            if (selectedAlgorithm === "Priority") {
+                tableHtml += "<th>Priority</th>";
+            }
+
+            tableHtml += "</tr>";
+
+            for (let i = 1; i <= numProcesses; i++) {
+                tableHtml += `<tr>
+                    <td>P${i}</td>
+                    <td><input type="number" id="arrival${i}" placeholder="Arrival"></td>
+                    <td><input type="number" id="burst${i}" placeholder="Burst"></td>`;
+
+                if (selectedAlgorithm === "Priority") {
+                    tableHtml += `<td><input type="number" id="priority${i}" placeholder="Priority"></td>`;
+                }
+
+                tableHtml += '</tr>';
+            }
+
+            tableHtml += "</table><br><button onclick='storeProcesses()'>Submit</button>";
+            inputSection.innerHTML = tableHtml;
+        }
+
+        let processes = [];
+
+        function storeProcesses() {
+            let numProcesses = document.getElementById("numProcesses").value;
+            processes = [];
+
+            for (let i = 1; i <= numProcesses; i++) {
+                let arrival = document.getElementById(`arrival${i}`).value;
+                let burst = document.getElementById(`burst${i}`).value;
+                let priority = selectedAlgorithm === "Priority" ? document.getElementById(`priority${i}`).value : 0;
+
+                if (arrival === "" || burst === "" || (selectedAlgorithm === "Priority" && priority === "")) {
+                    alert("Fill all fields!");
+                    return;
+                }
+
+                processes.push({ id: i, arrival: parseInt(arrival), burst: parseInt(burst), priority: parseInt(priority) });
+            }
+
+            alert("Processes stored successfully! Now select an algorithm and calculate.");
+        }
+
+        function fcfsScheduling(processes) {
+            processes.sort((a, b) => a.arrival - b.arrival);
+            let n = processes.length;
+            let completionTime = [], waitingTime = [];
+            let currentTime = 0, totalWaitingTime = 0;
+
+            for (let i = 0; i < n; i++) {
+                let { arrival, burst } = processes[i];
+                if (currentTime < arrival) currentTime = arrival;
+                completionTime[i] = currentTime + burst;
+                waitingTime[i] = completionTime[i] - arrival - burst;
+                totalWaitingTime += waitingTime[i];
+                currentTime += burst;
+            }
+
+            return { completionTime, waitingTime, avgWaitingTime: (totalWaitingTime / n).toFixed(2) };
+        }
+
+        function sjfScheduling(processes) {
+            processes.sort((a, b) => a.burst - b.burst || a.arrival - b.arrival);
+            return fcfsScheduling(processes);
+        }
+
+        function priorityScheduling(processes) {
+            processes.sort((a, b) => a.priority - b.priority || a.arrival - b.arrival);
+            return fcfsScheduling(processes);
+        }
+
+        function srtfScheduling(processes) {
+            let n = processes.length;
+            let remainingTime = processes.map(p => p.burst);
+            let completionTime = Array(n).fill(0);
+            let waitingTime = Array(n).fill(0);
+            let currentTime = 0, totalWaitingTime = 0;
+            let completed = 0;
+
+            while (completed < n) {
+                let minIndex = -1;
+                let minRemaining = Infinity;
+
+                for (let i = 0; i < n; i++) {
+                    if (processes[i].arrival <= currentTime && remainingTime[i] > 0 && remainingTime[i] < minRemaining) {
+                        minIndex = i;
+                        minRemaining = remainingTime[i];
+                    }
+                }
+
+                if (minIndex === -1) {
+                    currentTime++;
+                    continue;
+                }
+
+                remainingTime[minIndex]--;
+                if (remainingTime[minIndex] === 0) {
+                    completed++;
+                    completionTime[minIndex] = currentTime + 1;
+                    waitingTime[minIndex] = completionTime[minIndex] - processes[minIndex].arrival - processes[minIndex].burst;
+                    totalWaitingTime += waitingTime[minIndex];
+                }
+
+                currentTime++;
+            }
+
+            return { completionTime, waitingTime, avgWaitingTime: (totalWaitingTime / n).toFixed(2) };
+        }
+
+        function roundRobinScheduling(processes, timeQuantum) {
+            let n = processes.length;
+            let waitingTime = Array(n).fill(0);
+            let completionTime = Array(n).fill(0);
+            let remainingTime = processes.map(p => p.burst);
+            let currentTime =0;
+            let queue = [];
+            let completed = 0;
+            let totalWaitingTime = 0;
+
+            processes.sort((a, b) => a.arrival - b.arrival);
+            let currentIndex = 0;
+
+            while (completed < n) {
+                // Add processes to the queue that have arrived
+                while (currentIndex < n && processes[currentIndex].arrival <= currentTime) {
+                    queue.push(processes[currentIndex]);
+                    currentIndex++;
+                }
+
+                if (queue.length === 0) {
+                    currentTime++;
+                    continue;
+                }
+
+                let currentProcess = queue.shift();
+
+                if (remainingTime[currentProcess.id - 1] > timeQuantum) {
+                    currentTime += timeQuantum;
+                    remainingTime[currentProcess.id - 1] -= timeQuantum;
+
+                    // Add remaining processes back to the queue
+                    while (currentIndex < n && processes[currentIndex].arrival <= currentTime) {
+                        queue.push(processes[currentIndex]);
+                        currentIndex++;
+                    }
+
+                    queue.push(currentProcess);
+                } else {
+                    currentTime += remainingTime[currentProcess.id - 1];
+                    remainingTime[currentProcess.id - 1] = 0;
+                    completed++;
+                    completionTime[currentProcess.id - 1] = currentTime;
+                    waitingTime[currentProcess.id - 1] =
+                        completionTime[currentProcess.id - 1] -
+                        currentProcess.arrival -
+                        currentProcess.burst;
+                    totalWaitingTime += waitingTime[currentProcess.id - 1];
+                }
+            }
+
+            return { completionTime, waitingTime, avgWaitingTime: (totalWaitingTime / n).toFixed(2) };
+        }
+
+        function calculate() {
+            if (processes.length === 0) {
+                alert("Please enter and submit process details first!");
+                return;
+            }
+
+            let result;
+            if (selectedAlgorithm === "FCFS") {
+                result = fcfsScheduling(processes);
+            } else if (selectedAlgorithm === "SJF") {
+                result = sjfScheduling(processes);
+            } else if (selectedAlgorithm === "Priority") {
+                result = priorityScheduling(processes);
+            } else if (selectedAlgorithm === "SRTF") {
+                result = srtfScheduling(processes);
+            } else if (selectedAlgorithm === "RR") {
+                let timeQuantum = parseInt(document.getElementById("timeQuantum").value);
+                if (!timeQuantum || timeQuantum <= 0) {
+                    alert("Please enter a valid Time Quantum for Round Robin!");
+                    return;
+                }
+                result = roundRobinScheduling(processes, timeQuantum);
+            } else {
+                alert("Invalid algorithm selected!");
+                return;
+            }
+
+            displayResults(result);
+        }
+
+        function displayResults(result) {
+            let output = document.getElementById("output");
+            output.innerHTML = `
+                <h3>Result:</h3>
+                <p>Average Waiting Time: ${result.avgWaitingTime}</p>
+                <table>
+                    <tr>
+                        <th>Process</th>
+                        <th>Completion Time</th>
+                        <th>Waiting Time</th>
+                    </tr>
+                    ${processes
+                        .map(
+                            (p, i) => `
+                        <tr>
+                            <td>P${p.id}</td>
+                            <td>${result.completionTime[i]}</td>
+                            <td>${result.waitingTime[i]}</td>
+                        </tr>
+                    `
+                        )
+                        .join("")}
+                </table>
+            `;
+
+            displayGanttChart(result.completionTime);
+        }
+
+        function displayGanttChart(completionTimes) {
+            let gantt = document.getElementById("ganttChart");
+            gantt.innerHTML = "<h3>Gantt Chart:</h3>";
+        
+            let chart = "";
+            let currentTime = 0;
+        
+            processes.forEach((p, i) => {
+                let startTime = currentTime;
+                let endTime = completionTimes[i];
+                chart += `
+                    <div style="display: inline-block; background-color: orange; width: ${p.burst * 20}px; text-align: center; position: relative;">
+                        P${p.id}
+                        <span style="position: absolute; bottom: -20px; left: 0; font-size: 12px; color: white;">${startTime}</span>
+                        <span style="position: absolute; bottom: -20px; right: 0; font-size: 12px; color: white;">${endTime}</span>
+                    </div>
+                `;
+                currentTime = endTime;
+            });
+        
+            gantt.innerHTML += `<div style="display: flex;">${chart}</div>`;
+        }
+        
+    </script>
+</body>
+</html>
